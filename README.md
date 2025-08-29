@@ -123,8 +123,8 @@ Admin Features (if Admin): Monitor user activities, view audit logs, and manage 
 
 Team Zippinn Members
 Ayati Gupta- ag4365@srmist.edu.in
-Ambesh Singh-as1751@srmst.edu.in
-Vivan Sanghvi-vs4454@srmist.edu.in
+Ambesh Singh- as1751@srmst.edu.in
+Vivan Sanghvi- vs4454@srmist.edu.in
 
 <img width="1908" height="963" alt="image" src="https://github.com/user-attachments/assets/08677c6c-6bb4-421c-b9ec-5ba4d722be0b" />
 <img width="1908" height="963" alt="image" src="https://github.com/user-attachments/assets/6c9a0dce-5c3b-4f70-87d7-f4cab0b3bec6" />
