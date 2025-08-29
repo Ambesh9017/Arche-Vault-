@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arche Vault - Automated Bitcoin Savings</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bitcoin: '#f7931a',
+                        primary: '#1e40af',
+                        secondary: '#f59e0b'
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-in-out',
+                        'slide-up': 'slideUp 0.6s ease-out',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 3s ease-in-out infinite',
+                        'glow': 'glow 2s ease-in-out infinite alternate'
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' }
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(50px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' }
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' }
+                        },
+                        glow: {
+                            '0%': { boxShadow: '0 0 20px rgba(247, 147, 26, 0.3)' },
+                            '100%': { boxShadow: '0 0 30px rgba(247, 147, 26, 0.6)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, rgba(0,0,0,0.9) 0%, rgba(30,64,175,0.95) 50%, rgba(15,23,42,0.9) 100%), 
+                        radial-gradient(circle at 20% 80%, rgba(247, 147, 26, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.15) 0%, transparent 50%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .gradient-bg::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="bitcoin-pattern" x="0" y="0" width="50" height="50" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="15" fill="none" stroke="%23f7931a" stroke-width="1" opacity="0.05"/><text x="25" y="30" text-anchor="middle" font-family="Arial" font-size="10" fill="%23f7931a" opacity="0.1">₿</text></pattern></defs><rect width="100" height="100" fill="url(%23bitcoin-pattern)"/></svg>');
+            background-size: 300px 300px;
+            animation: float 20s ease-in-out infinite;
+            pointer-events: none;
+        }
+        
+        .bitcoin-gradient {
+            background: linear-gradient(135deg, #f7931a 0%, #ff6b35 50%, #ffd700 100%);
+        }
+        
+        .glass {
+            backdrop-filter: blur(15px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .savings-card {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(145deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.9) 100%);
+        }
+        
+        .savings-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15), 0 0 40px rgba(247, 147, 26, 0.1);
+        }
+        
+        .feature-card {
+            background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(30, 64, 175, 0.3);
+        }
+        
+        .btn-bitcoin {
+            background: linear-gradient(135deg, #f7931a 0%, #ff6b35 50%, #ffd700 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-bitcoin:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(247, 147, 26, 0.4);
+        }
+        
+        .progress-bar {
+            background: linear-gradient(90deg, #3b82f6 0%, #1e40af 100%);
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .notification {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        .stats-counter {
+            transition: all 0.3s ease;
+        }
+        
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .gradient-bg::before {
+                background-size: 200px 200px;
+            }
+            
+            .savings-card:hover {
+                transform: translateY(-4px) scale(1.01);
+            }
+        }
+        
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            .feature-card {
+                background: linear-gradient(145deg, #1f2937 0%, #111827 100%);
+            }
+            
+            .savings-card {
+                background: linear-gradient(145deg, rgba(31, 41, 55, 0.95) 0%, rgba(17, 24, 39, 0.9) 100%);
+                color: #f9fafb;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white/95 backdrop-blur-sm shadow-lg sticky top-0 z-50 border-b border-gray-100">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center animate-fade-in">
+                    <div class="w-10 h-10 bitcoin-gradient rounded-xl flex items-center justify-center mr-3 shadow-lg animate-glow">
+                        <i class="fas fa-vault text-white text-lg font-bold"></i>
+                    </div>
+                    <span class="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">Arche Vault</span>
+                </div>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#home" class="text-gray-700 hover:text-primary transition-colors font-medium">Home</a>
+                    <a href="#features" class="text-gray-700 hover:text-primary transition-colors font-medium">Features</a>
+                    <a href="#how-it-works" class="text-gray-700 hover:text-primary transition-colors font-medium">How It Works</a>
+                    <a href="#dashboard" class="text-gray-700 hover:text-primary transition-colors font-medium">Dashboard</a>
+                    <button id="connectWallet" class="btn-primary text-white px-6 py-2 rounded-xl font-semibold shadow-lg">
+                        <i class="fas fa-wallet mr-2"></i>Connect Wallet
+                    </button>
+                </div>
+                <!-- Mobile menu button -->
+                <button id="mobileMenuBtn" class="md:hidden p-2 text-gray-700 hover:text-primary">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+            </div>
+            <!-- Mobile menu -->
+            <div id="mobileMenu" class="hidden md:hidden pb-4">
+                <div class="flex flex-col space-y-2">
+                    <a href="#home" class="text-gray-700 hover:text-primary py-2 font-medium">Home</a>
+                    <a href="#features" class="text-gray-700 hover:text-primary py-2 font-medium">Features</a>
+                    <a href="#how-it-works" class="text-gray-700 hover:text-primary py-2 font-medium">How It Works</a>
+                    <a href="#dashboard" class="text-gray-700 hover:text-primary py-2 font-medium">Dashboard</a>
+                    <button class="btn-primary text-white px-6 py-2 rounded-xl font-semibold w-full mt-2">
+                        <i class="fas fa-wallet mr-2"></i>Connect Wallet
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="gradient-bg text-white py-20 relative">
+        <div class="max-w-7xl mx-auto px-4 text-center relative z-10">
+            <div class="animate-slide-up">
+                <h1 class="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
+                    <span class="block bg-gradient-to-r from-yellow-400 via-bitcoin to-orange-500 bg-clip-text text-transparent animate-pulse-slow">Arche Vault</span>
+                    <span class="block text-white text-3xl md:text-5xl lg:text-6xl mt-2">Automated Bitcoin Savings</span>
+                    <span class="block text-yellow-300 text-2xl md:text-3xl lg:text-4xl mt-2 font-medium">Secured by Blockchain</span>
+                </h1>
+                <p class="text-lg md:text-xl lg:text-2xl mb-8 opacity-90 max-w-4xl mx-auto leading-relaxed">
+                    The professional vault for your crypto wealth. Save regularly, trustlessly, and transparently with institutional-grade security powered by Bitcoin and Stacks.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                    <button id="createPlanBtn" class="btn-bitcoin text-white px-8 py-4 rounded-xl text-lg font-semibold shadow-2xl group">
+                        <i class="fas fa-plus mr-2 group-hover:rotate-180 transition-transform duration-300"></i>
+                        Open Your Vault
+                    </button>
+                    <button class="glass border-2 border-white/30 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:bg-white/10 transition-all duration-300">
+                        <i class="fas fa-play mr-2"></i>Watch Demo
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Floating elements -->
+        <div class="absolute top-20 left-10 w-4 h-4 bg-bitcoin rounded-full opacity-60 animate-float"></div>
+        <div class="absolute top-40 right-20 w-6 h-6 bg-blue-400 rounded-full opacity-40 animate-float" style="animation-delay: 1s;"></div>
+        <div class="absolute bottom-20 left-1/4 w-3 h-3 bg-yellow-400 rounded-full opacity-50 animate-float" style="animation-delay: 2s;"></div>
+    </section>
+
+    <!-- Key Stats -->
+    <section class="bg-white py-12 -mt-10 relative z-20">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="glass bg-white/90 rounded-2xl shadow-2xl p-8 border border-gray-100">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+                    <div class="stats-counter animate-fade-in">
+                        <div class="text-2xl md:text-3xl font-bold text-primary mb-2 transition-all duration-500" id="totalSaved">$0</div>
+                        <div class="text-gray-600 font-medium">Total Saved</div>
+                    </div>
+                    <div class="stats-counter animate-fade-in" style="animation-delay: 0.1s;">
+                        <div class="text-2xl md:text-3xl font-bold text-bitcoin mb-2 transition-all duration-500" id="activePlans">0</div>
+                        <div class="text-gray-600 font-medium">Active Plans</div>
+                    </div>
+                    <div class="stats-counter animate-fade-in" style="animation-delay: 0.2s;">
+                        <div class="text-2xl md:text-3xl font-bold text-green-600 mb-2 transition-all duration-500" id="totalUsers">247</div>
+                        <div class="text-gray-600 font-medium">Total Users</div>
+                    </div>
+                    <div class="stats-counter animate-fade-in" style="animation-delay: 0.3s;">
+                        <div class="text-2xl md:text-3xl font-bold text-purple-600 mb-2">100%</div>
+                        <div class="text-gray-600 font-medium">Decentralized</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section id="features" class="py-20 bg-gradient-to-b from-gray-50 to-white">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="text-center mb-16 animate-fade-in">
+                <h2 class="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">Why Choose Arche Vault?</h2>
+                <p class="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">The most secure and transparent way to build your crypto wealth with institutional-grade automation</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="feature-card p-8 rounded-2xl shadow-lg border border-gray-100 animate-fade-in">
+                    <div class="w-16 h-16 bitcoin-gradient rounded-2xl flex items-center justify-center mb-6 shadow-lg">
+                        <i class="fas fa-shield-alt text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4 text-gray-900">Institutional Security</h3>
+                    <p class="text-gray-600 leading-relaxed">Your funds are secured by Bitcoin's immutable blockchain via Stacks, providing bank-level security with complete transparency and censorship resistance.</p>
+                </div>
+                <div class="feature-card p-8 rounded-2xl shadow-lg border border-gray-100 animate-fade-in" style="animation-delay: 0.1s;">
+                    <div class="w-16 h-16 bg-gradient-to-r from-primary to-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
+                        <i class="fas fa-robot text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4 text-gray-900">Fully Automated</h3>
+                    <p class="text-gray-600 leading-relaxed">Set it and forget it. Smart contracts handle your recurring deposits automatically without any manual intervention or counterparty risk.</p>
+                </div>
+                <div class="feature-card p-8 rounded-2xl shadow-lg border border-gray-100 animate-fade-in" style="animation-delay: 0.2s;">
+                    <div class="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
+                        <i class="fas fa-eye text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4 text-gray-900">100% Transparent</h3>
+                    <p class="text-gray-600 leading-relaxed">Every transaction is verifiable on-chain. No hidden fees, no black boxes - complete transparency with open-source smart contracts.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section id="how-it-works" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="text-center mb-16 animate-fade-in">
+                <h2 class="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">How It Works</h2>
+                <p class="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">Simple, secure, and automated crypto wealth building in just three steps</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
+                <div class="text-center animate-fade-in">
+                    <div class="relative">
+                        <div class="w-20 h-20 bg-gradient-to-r from-primary to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 text-white text-2xl font-bold shadow-2xl">1</div>
+                        <div class="hidden md:block absolute top-10 left-full w-full h-0.5 bg-gradient-to-r from-primary to-transparent -z-10"></div>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4 text-gray-900">Create Your Plan</h3>
+                    <p class="text-gray-600 leading-relaxed">Choose your savings amount, frequency (daily/weekly/monthly), and lock duration. Customize your financial goals with flexible parameters.</p>
+                </div>
+                <div class="text-center animate-fade-in" style="animation-delay: 0.1s;">
+                    <div class="relative">
+                        <div class="w-20 h-20 bitcoin-gradient rounded-full flex items-center justify-center mx-auto mb-6 text-white text-2xl font-bold shadow-2xl">2</div>
+                        <div class="hidden md:block absolute top-10 left-full w-full h-0.5 bg-gradient-to-r from-bitcoin to-transparent -z-10"></div>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4 text-gray-900">Smart Contract Locks Funds</h3>
+                    <p class="text-gray-600 leading-relaxed">Your STX/BTC is securely locked in our audited Clarity smart contract with transparent, immutable rules that you control.</p>
+                </div>
+                <div class="text-center animate-fade-in" style="animation-delay: 0.2s;">
+                    <div class="w-20 h-20 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 text-white text-2xl font-bold shadow-2xl">3</div>
+                    <h3 class="text-xl font-bold mb-4 text-gray-900">Watch Your Wealth Grow</h3>
+                    <p class="text-gray-600 leading-relaxed">Monitor your progress with real-time analytics and withdraw your accumulated savings when your plan matures or milestones are reached.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dashboard -->
+    <section id="dashboard" class="py-20 bg-gradient-to-b from-gray-50 to-white">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="text-center mb-12 animate-fade-in">
+                <h2 class="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">Your Wealth Vault Dashboard</h2>
+                <p class="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">Manage and track your automated crypto accumulation with professional-grade analytics</p>
+            </div>
+
+            <!-- Wallet Connection Status -->
+            <div id="walletStatus" class="notification bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-2xl p-6 mb-8 text-center shadow-lg">
+                <div class="flex items-center justify-center">
+                    <i class="fas fa-wallet text-yellow-600 mr-3 text-xl"></i>
+                    <span class="text-yellow-800 font-medium text-lg">Connect your wallet to access your savings dashboard</span>
+                </div>
+            </div>
+
+            <!-- Create Plan Modal -->
+            <div id="createPlanModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl animate-slide-up">
+                    <div class="flex justify-between items-center mb-8">
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-900">Create Wealth Vault</h3>
+                            <p class="text-gray-600 mt-1">Start your automated savings journey</p>
+                        </div>
+                        <button id="closeModal" class="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-full transition-colors">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                    <form id="savingsPlanForm" class="space-y-6">
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-3">Savings Amount (STX)</label>
+                            <div class="relative">
+                                <input type="number" id="savingsAmount" class="w-full p-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all" placeholder="50" required min="1" step="0.01">
+                                <div class="absolute right-4 top-4 text-gray-400 font-medium">STX</div>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-3">Frequency</label>
+                            <select id="frequency" class="w-full p-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all" required>
+                                <option value="daily">Daily - Build wealth consistently</option>
+                                <option value="weekly" selected>Weekly - Steady growth</option>
+                                <option value="monthly">Monthly - Long-term accumulation</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-3">Lock Duration (months)</label>
+                            <input type="number" id="lockDuration" class="w-full p-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all" placeholder="6" min="1" max="60" required>
+                            <p class="text-sm text-gray-500 mt-2">Longer durations provide better compound growth</p>
+                        </div>
+                        <button type="submit" class="w-full btn-primary text-white py-4 rounded-xl font-semibold text-lg shadow-xl">
+                            <i class="fas fa-vault mr-3"></i>Create Your Vault
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Savings Plans Grid -->
+            <div id="savingsPlans" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                <!-- Plans will be dynamically added here -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="text-center py-16 animate-fade-in">
+                <div class="w-32 h-32 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-8">
+                    <i class="fas fa-vault text-4xl text-gray-400"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-700 mb-4">No Wealth Vaults Yet</h3>
+                <p class="text-gray-500 mb-8 text-lg max-w-md mx-auto">Create your first automated wealth accumulation vault to start building your crypto portfolio</p>
+                <button id="createFirstPlan" class="btn-primary text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-xl">
+                    <i class="fas fa-plus mr-3"></i>Create Your First Vault
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Business Model -->
+    <section class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="text-center mb-16 animate-fade-in">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Sustainable Business Model</h2>
+                <p class="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">Revenue streams that align perfectly with user success and platform growth</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="feature-card p-6 rounded-2xl shadow-lg border border-blue-100 animate-fade-in">
+                    <div class="w-14 h-14 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-percentage text-white text-lg"></i>
+                    </div>
+                    <h3 class="font-bold mb-2 text-gray-900">Platform Fee</h3>
+                    <p class="text-sm text-gray-600">0.5% annual fee on managed funds - industry leading low rates</p>
+                </div>
+                <div class="feature-card p-6 rounded-2xl shadow-lg border border-green-100 animate-fade-in" style="animation-delay: 0.1s;">
+                    <div class="w-14 h-14 bg-gradient-to-r from-green-500 to-green-600 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-crown text-white text-lg"></i>
+                    </div>
+                    <h3 class="font-bold mb-2 text-gray-900">Premium Features</h3>
+                    <p class="text-sm text-gray-600">Advanced analytics, AI insights, and portfolio optimization</p>
+                </div>
+                <div class="feature-card p-6 rounded-2xl shadow-lg border border-purple-100 animate-fade-in" style="animation-delay: 0.2s;">
+                    <div class="w-14 h-14 bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-handshake text-white text-lg"></i>
+                    </div>
+                    <h3 class="font-bold mb-2 text-gray-900">Partnerships</h3>
+                    <p class="text-sm text-gray-600">Revenue sharing with DeFi protocols and yield strategies</p>
+                </div>
+                <div class="feature-card p-6 rounded-2xl shadow-lg border border-orange-100 animate-fade-in" style="animation-delay: 0.3s;">
+                    <div class="w-14 h-14 bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-graduation-cap text-white text-lg"></i>
+                    </div>
+                    <h3 class="font-bold mb-2 text-gray-900">Education</h3>
+                    <p class="text-sm text-gray-600">Crypto literacy courses, certifications, and investment education</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white py-16">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="lg:col-span-2">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 bitcoin-gradient rounded-xl flex items-center justify-center mr-4 shadow-lg">
+                            <i class="fas fa-vault text-white text-lg"></i>
+                        </div>
+                        <span class="text-2xl font-bold">Arche Vault</span>
+                    </div>
+                    <p class="text-gray-400 mb-6 text-lg leading-relaxed max-w-md">Professional automated Bitcoin wealth accumulation secured by blockchain technology. Build your financial future with institutional-grade security.</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center text-gray-400 hover:text-white hover:bg-bitcoin transition-all duration-300">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center text-gray-400 hover:text-white hover:bg-bitcoin transition-all duration-300">
+                            <i class="fab fa-discord"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center text-gray-400 hover:text-white hover:bg-bitcoin transition-all duration-300">
+                            <i class="fab fa-github"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center text-gray-400 hover:text-white hover:bg-bitcoin transition-all duration-300">
+                            <i class="fab fa-telegram"></i>
+                        </a>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-6 text-lg">Product</h4>
+                    <ul class="space-y-3 text-gray-400">
+                        <li><a href="#features" class="hover:text-white transition-colors">Features</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Security Audit</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">API Documentation</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Smart Contracts</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-6 text-lg">Company</h4>
+                    <ul class="space-y-3 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">About Us</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Blog</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Careers</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Press Kit</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-12 pt-8 text-center">
+                <p class="text-gray-400">&copy; 2025 Arche Vault. Built on Stacks. Secured by Bitcoin. All rights reserved.</p>
+                <p class="text-gray-500 mt-2 text-sm">Decentralized. Trustless. Transparent.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // =====================================================
+        // ARCHE VAULT FRONTEND - ENHANCED IMPLEMENTATION
+        // =====================================================
+
+        // Application State Management
+        class AppState {
+            constructor() {
+                this.isWalletConnected = false;
+                this.userAddress = '';
+                this.savingsPlans = [];
+                this.totalSaved = 0;
+                this.isLoading = false;
+                this.notifications = [];
+            }
+
+            setState(updates) {
+                Object.assign(this, updates);
+                this.render();
+            }
+
+            addNotification(notification) {
+                this.notifications.push({
+                    id: Date.now(),
+                    timestamp: new Date(),
+                    ...notification
+                });
+                this.renderNotifications();
+                
+                // Auto-remove after 5 seconds
+                setTimeout(() => {
+                    this.removeNotification(this.notifications[this.notifications.length - 1].id);
+                }, 5000);
+            }
+
+            removeNotification(id) {
+                this.notifications = this.notifications.filter(n => n.id !== id);
+                this.renderNotifications();
+            }
+
+            render() {
+                this.updateStats();
+                this.renderSavingsPlans();
+                this.updateWalletStatus();
+            }
+
+            renderNotifications() {
+                // Implementation for notification system
+                console.log('Notifications updated:', this.notifications);
+            }
+
+            updateStats() {
+                const totalSavedElement = document.getElementById('totalSaved');
+                const activePlansElement = document.getElementById('activePlans');
+                
+                if (totalSavedElement) {
+                    this.animateCounter(totalSavedElement, this.formatCurrency(this.totalSaved));
+                }
+                
+                if (activePlansElement) {
+                    this.animateCounter(activePlansElement, this.savingsPlans.filter(p => p.status === 'active').length);
+                }
+            }
+
+            animateCounter(element, finalValue) {
+                const currentValue = element.textContent;
+                if (currentValue !== finalValue.toString()) {
+                    element.style.transform = 'scale(1.1)';
+                    setTimeout(() => {
+                        element.textContent = finalValue;
+                        element.style.transform = 'scale(1)';
+                    }, 150);
+                }
+            }
+
+            formatCurrency(amount) {
+                return new Intl.NumberFormat('en-US', { 
+                    style: 'currency', 
+                    currency: 'USD',
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                }).format(amount * 2.5); // STX to USD conversion
+            }
+
+            formatDate(date) {
+                return new Intl.DateTimeFormat('en-US', { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                }).format(new Date(date));
+            }
+
+            updateWalletStatus() {
+                const walletStatus = document.getElementById('walletStatus');
+                const connectWalletBtn = document.getElementById('connectWallet');
+                
+                if (this.isWalletConnected) {
+                    walletStatus.className = 'notification bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-6 mb-8 text-center shadow-lg';
+                    walletStatus.innerHTML = `
+                        <div class="flex items-center justify-center">
+                            <i class="fas fa-check-circle text-green-600 mr-3 text-xl"></i>
+                            <span class="text-green-800 font-medium text-lg">Wallet connected: ${this.userAddress.substring(0, 20)}...</span>
+                        </div>
+                    `;
+                    
+                    connectWalletBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Connected';
+                    connectWalletBtn.className = 'bg-green-600 text-white px-6 py-2 rounded-xl font-semibold cursor-not-allowed';
+                    connectWalletBtn.disabled = true;
+                } else {
+                    walletStatus.className = 'notification bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-2xl p-6 mb-8 text-center shadow-lg';
+                    walletStatus.innerHTML = `
+                        <div class="flex items-center justify-center">
+                            <i class="fas fa-wallet text-yellow-600 mr-3 text-xl"></i>
+                            <span class="text-yellow-800 font-medium text-lg">Connect your wallet to access your savings dashboard</span>
+                        </div>
+                    `;
+                }
+            }
+
+            renderSavingsPlans() {
+                const container = document.getElementById('savingsPlans');
+                const emptyState = document.getElementById('emptyState');
+                
+                if (this.savingsPlans.length === 0) {
+                    emptyState.style.display = 'block';
+                    container.style.display = 'none';
+                    return;
+                }
+
+                emptyState.style.display = 'none';
+                container.style.display = 'grid';
+
+                container.innerHTML = this.savingsPlans.map(plan => this.renderSavingsPlan(plan)).join('');
+            }
+
+            renderSavingsPlan(plan) {
+                const progress = Math.min(100, (plan.progress || 0));
+                const statusColor = this.getStatusColor(plan.status);
+                const nextContribution = this.formatDate(plan.nextContribution);
+                const totalTarget = this.formatCurrency(plan.totalContributions || 0);
+                
+                return `
+                    <div class="savings-card rounded-2xl shadow-lg p-6 border border-gray-100 animate-fade-in">
+                        <div class="flex justify-between items-start mb-6">
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-900 mb-1">
+                                    ${plan.amount} STX ${plan.frequency}
+                                </h3>
+                                <p class="text-gray-600">${plan.duration} month wealth plan</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="inline-block px-3 py-1 rounded-full text-sm font-semibold ${statusColor}">
+                                    <i class="fas fa-circle mr-1 text-xs"></i>${plan.status}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <div class="flex justify-between text-sm text-gray-600 mb-2">
+                                <span class="font-medium">Progress</span>
+                                <span class="font-bold">${progress.toFixed(1)}%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                                <div class="progress-bar h-3 rounded-full transition-all duration-1000 ease-out" style="width: ${progress}%"></div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 mb-6">
+                            <div class="bg-gray-50 p-4 rounded-xl">
+                                <p class="text-gray-600 text-sm font-medium mb-1">Total Target</p>
+                                <p class="font-bold text-lg text-gray-900">${totalTarget}</p>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-xl">
+                                <p class="text-gray-600 text-sm font-medium mb-1">Next Deposit</p>
+                                <p class="font-bold text-sm text-gray-900">${nextContribution}</p>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3">
+                            <button class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 px-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center">
+                                <i class="fas fa-chart-line mr-2"></i>View Analytics
+                            </button>
+                            <div class="grid grid-cols-2 gap-3">
+                                <button onclick="appState.withdrawPlan(${plan.id})" class="btn-bitcoin text-white py-2 px-4 rounded-xl font-semibold text-sm transition-all duration-300">
+                                    <i class="fas fa-money-bill-wave mr-1"></i>Withdraw
+                                </button>
+                                <button onclick="appState.pausePlan(${plan.id})" class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-xl font-semibold text-sm transition-all duration-300">
+                                    <i class="fas fa-pause mr-1"></i>Pause
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            getStatusColor(status) {
+                const colors = {
+                    'active': 'bg-green-100 text-green-800',
+                    'paused': 'bg-yellow-100 text-yellow-800',
+                    'completed': 'bg-blue-100 text-blue-800',
+                    'withdrawn': 'bg-gray-100 text-gray-800'
+                };
+                return colors[status] || colors.active;
+            }
+
+            // Plan Management Methods
+            async createSavingsPlan(amount, frequency, duration) {
+                this.setState({ isLoading: true });
+                
+                try {
+                    // Simulate API call
+                    await this.delay(2000);
+                    
+                    const plan = {
+                        id: Date.now(),
+                        amount: parseFloat(amount),
+                        frequency: frequency,
+                        duration: parseInt(duration),
+                        created: new Date(),
+                        totalContributions: this.calculateTotalContributions(amount, frequency, duration),
+                        status: 'active',
+                        nextContribution: this.getNextContributionDate(frequency),
+                        progress: 0
+                    };
+
+                    this.savingsPlans.push(plan);
+                    this.totalSaved += plan.totalContributions;
+                    
+                    this.addNotification({
+                        type: 'success',
+                        title: 'Vault Created!',
+                        message: `Your ${frequency} savings plan of ${amount} STX has been created successfully.`
+                    });
+                    
+                    this.setState({ isLoading: false });
+                    this.startPlanSimulation(plan.id);
+                    
+                    return plan;
+                } catch (error) {
+                    this.setState({ isLoading: false });
+                    this.addNotification({
+                        type: 'error',
+                        title: 'Creation Failed',
+                        message: 'Failed to create savings plan. Please try again.'
+                    });
+                    throw error;
+                }
+            }
+
+            calculateTotalContributions(amount, frequency, duration) {
+                const multipliers = {
+                    'daily': 30,
+                    'weekly': 4,
+                    'monthly': 1
+                };
+                return parseFloat(amount) * (multipliers[frequency] || 4) * parseInt(duration);
+            }
+
+            getNextContributionDate(frequency) {
+                const now = new Date();
+                const intervals = {
+                    'daily': 1,
+                    'weekly': 7,
+                    'monthly': 30
+                };
+                
+                const days = intervals[frequency] || 7;
+                return new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+            }
+
+            startPlanSimulation(planId) {
+                const plan = this.savingsPlans.find(p => p.id === planId);
+                if (!plan) return;
+
+                const interval = setInterval(() => {
+                    if (plan.progress >= 100) {
+                        clearInterval(interval);
+                        plan.status = 'completed';
+                        this.addNotification({
+                            type: 'success',
+                            title: 'Plan Completed!',
+                            message: `Your savings plan has matured. ${this.formatCurrency(plan.totalContributions)} is ready for withdrawal.`
+                        });
+                        this.render();
+                        return;
+                    }
+
+                    plan.progress += Math.random() * 12 + 3; // Random progress 3-15%
+                    if (plan.progress > 100) plan.progress = 100;
+                    
+                    this.render();
+                }, 3000);
+            }
+
+            async withdrawPlan(planId) {
+                const plan = this.savingsPlans.find(p => p.id === planId);
+                if (!plan) return;
+
+                const withdrawAmount = this.formatCurrency(plan.totalContributions * (plan.progress / 100));
+                
+                if (confirm(`Withdraw ${withdrawAmount} from your savings plan?`)) {
+                    this.setState({ isLoading: true });
+                    
+                    try {
+                        await this.delay(1500);
+                        
+                        plan.status = 'withdrawn';
+                        
+                        this.addNotification({
+                            type: 'success',
+                            title: 'Withdrawal Successful!',
+                            message: `${withdrawAmount} has been transferred to your wallet.`
+                        });
+                        
+                        this.setState({ isLoading: false });
+                    } catch (error) {
+                        this.setState({ isLoading: false });
+                        this.addNotification({
+                            type: 'error',
+                            title: 'Withdrawal Failed',
+                            message: 'Failed to withdraw funds. Please try again.'
+                        });
+                    }
+                }
+            }
+
+            async pausePlan(planId) {
+                const plan = this.savingsPlans.find(p => p.id === planId);
+                if (!plan) return;
+
+                plan.status = plan.status === 'active' ? 'paused' : 'active';
+                
+                this.addNotification({
+                    type: 'info',
+                    title: 'Plan Updated',
+                    message: `Your savings plan has been ${plan.status}.`
+                });
+                
+                this.render();
+            }
+
+            // Utility Methods
+            delay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
+            // Wallet Connection Simulation
+            async connectWallet() {
+                this.setState({ isLoading: true });
+                
+                try {
+                    await this.delay(1500);
+                    
+                    this.setState({
+                        isWalletConnected: true,
+                        userAddress: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM',
+                        isLoading: false
+                    });
+                    
+                    this.addNotification({
+                        type: 'success',
+                        title: 'Wallet Connected!',
+                        message: 'Your wallet has been connected successfully.'
+                    });
+                    
+                    // Auto-create demo plans after connection
+                    setTimeout(() => {
+                        this.createDemoPlans();
+                    }, 2000);
+                    
+                } catch (error) {
+                    this.setState({ isLoading: false });
+                    this.addNotification({
+                        type: 'error',
+                        title: 'Connection Failed',
+                        message: 'Failed to connect wallet. Please try again.'
+                    });
+                }
+            }
+
+            async createDemoPlans() {
+                // Create demo plans for showcase
+                await this.createSavingsPlan(100, 'weekly', 6);
+                await this.delay(1000);
+                await this.createSavingsPlan(50, 'monthly', 12);
+            }
+        }
+
+        // Initialize Application State
+        const appState = new AppState();
+
+        // DOM Elements
+        const elements = {
+            connectWalletBtn: document.getElementById('connectWallet'),
+            createPlanBtn: document.getElementById('createPlanBtn'),
+            createFirstPlanBtn: document.getElementById('createFirstPlan'),
+            createPlanModal: document.getElementById('createPlanModal'),
+            closeModalBtn: document.getElementById('closeModal'),
+            savingsPlanForm: document.getElementById('savingsPlanForm'),
+            mobileMenuBtn: document.getElementById('mobileMenuBtn'),
+            mobileMenu: document.getElementById('mobileMenu')
+        };
+
+        // Event Listeners Setup
+        function setupEventListeners() {
+            // Wallet Connection
+            elements.connectWalletBtn?.addEventListener('click', () => {
+                if (!appState.isWalletConnected && !appState.isLoading) {
+                    appState.connectWallet();
+                }
+            });
+
+            // Plan Creation Modals
+            [elements.createPlanBtn, elements.createFirstPlanBtn].forEach(btn => {
+                btn?.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (!appState.isWalletConnected) {
+                        appState.addNotification({
+                            type: 'warning',
+                            title: 'Wallet Required',
+                            message: 'Please connect your wallet first!'
+                        });
+                        return;
+                    }
+                    elements.createPlanModal?.classList.remove('hidden');
+                    document.body.style.overflow = 'hidden';
+                });
+            });
+
+            // Modal Controls
+            elements.closeModalBtn?.addEventListener('click', () => {
+                elements.createPlanModal?.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            });
+
+            // Click outside modal to close
+            elements.createPlanModal?.addEventListener('click', (e) => {
+                if (e.target === elements.createPlanModal) {
+                    elements.createPlanModal.classList.add('hidden');
+                    document.body.style.overflow = 'auto';
+                }
+            });
+
+            // Form Submission
+            elements.savingsPlanForm?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const formData = new FormData(e.target);
+                const amount = document.getElementById('savingsAmount')?.value;
+                const frequency = document.getElementById('frequency')?.value;
+                const duration = document.getElementById('lockDuration')?.value;
+                
+                if (!amount || !frequency || !duration) {
+                    appState.addNotification({
+                        type: 'error',
+                        title: 'Invalid Input',
+                        message: 'Please fill all required fields.'
+                    });
+                    return;
+                }
+
+                try {
+                    await appState.createSavingsPlan(amount, frequency, duration);
+                    elements.createPlanModal?.classList.add('hidden');
+                    document.body.style.overflow = 'auto';
+                    elements.savingsPlanForm?.reset();
+                } catch (error) {
+                    console.error('Error creating plan:', error);
+                }
+            });
+
+            // Mobile Menu Toggle
+            elements.mobileMenuBtn?.addEventListener('click', () => {
+                elements.mobileMenu?.classList.toggle('hidden');
+            });
+
+            // Smooth Scrolling
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({ 
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                        // Close mobile menu if open
+                        elements.mobileMenu?.classList.add('hidden');
+                    }
+                });
+            });
+
+            // Keyboard Shortcuts
+            document.addEventListener('keydown', (e) => {
+                // Escape key closes modal
+                if (e.key === 'Escape') {
+                    elements.createPlanModal?.classList.add('hidden');
+                    document.body.style.overflow = 'auto';
+                }
+                
+                // Ctrl/Cmd + K opens create plan modal
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                    e.preventDefault();
+                    if (appState.isWalletConnected) {
+                        elements.createPlanModal?.classList.remove('hidden');
+                        document.body.style.overflow = 'hidden';
+                    }
+                }
+            });
+        }
+
+        // Intersection Observer for Animations
+        function setupAnimations() {
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animate-fade-in');
+                        
+                        // Trigger counter animations
+                        if (entry.target.classList.contains('stats-counter')) {
+                            setTimeout(() => {
+                                appState.updateStats();
+                            }, 200);
+                        }
+                    }
+                });
+            }, observerOptions);
+
+            // Observe all animatable elements
+            document.querySelectorAll('.feature-card, .stats-counter, [class*="animate-"]').forEach(el => {
+                observer.observe(el);
+            });
+        }
+
+        // Auto-connect wallet for demo (after 3 seconds)
+        function initializeDemo() {
+            setTimeout(() => {
+                if (!appState.isWalletConnected) {
+                    appState.connectWallet();
+                }
+            }, 3000);
+        }
+
+        // Performance Monitoring
+        function setupPerformanceMonitoring() {
+            // Monitor page load performance
+            window.addEventListener('load', () => {
+                const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
+                console.log(`Page loaded in ${loadTime}ms`);
+                
+                // Report to analytics (in production)
+                if (loadTime > 3000) {
+                    console.warn('Page load time is high:', loadTime);
+                }
+            });
+
+            // Monitor memory usage
+            if ('memory' in performance) {
+                setInterval(() => {
+                    const memory = performance.memory;
+                    if (memory.usedJSHeapSize > 50 * 1024 * 1024) { // 50MB
+                        console.warn('High memory usage detected:', memory);
+                    }
+                }, 30000);
+            }
+        }
+
+        // Error Handling
+        window.addEventListener('error', (e) => {
+            console.error('Global error:', e.error);
+            appState.addNotification({
+                type: 'error',
+                title: 'Something went wrong',
+                message: 'An unexpected error occurred. Please refresh the page.'
+            });
+        });
+
+        // Unhandled Promise Rejections
+        window.addEventListener('unhandledrejection', (e) => {
+            console.error('Unhandled promise rejection:', e.reason);
+            appState.addNotification({
+                type: 'error',
+                title: 'Network Error',
+                message: 'A network error occurred. Please check your connection.'
+            });
+        });
+
+        // Initialize Application
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 Arche Vault Frontend Initialized');
+            
+            setupEventListeners();
+            setupAnimations();
+            setupPerformanceMonitoring();
+            
+            // Initial render
+            appState.render();
+            
+            // Initialize demo after DOM is ready
+            initializeDemo();
+        });
+
+        // Export for debugging
+        window.appState = appState;
+        window.ArcheVault = { appState, elements };
+        
+        console.log('✅ Arche Vault System Loaded Successfully!');
+    </script>
+</body>
+</html>
